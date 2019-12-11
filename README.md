@@ -1,1 +1,1 @@
-# The prototype tool: STYX
+# The Prototype tool of STYX

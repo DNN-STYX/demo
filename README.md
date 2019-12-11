@@ -1,1 +1,1 @@
-# demo
+# The prototype tool: STYX

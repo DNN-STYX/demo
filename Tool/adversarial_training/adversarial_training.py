@@ -30,16 +30,16 @@ from art.attacks.projected_gradient_descent import ProjectedGradientDescent
 if __name__ == "__main__":
 
     # ========================0.获取参数====================================== #
-    model_type = sys.argv[1]                                # "mnist_MLP"
-    adv_train_num = int(sys.argv[2])                        # 20
-    # ratio_value = float(sys.argv[3])                        # 0.5
-    # adv_train_attack = sys.argv[4]                          # "BIM"
-    # attack_par_lst = sys.argv[5][1:-1].split(', ')          # "[norm_type, np.inf, epsilon, 0.3, epsilon_step, 0.01, max_iteration, 40]"
+    data_type = sys.argv[1]                                 # "mnist"
+    model_type = sys.argv[2]                                # "MLP"
+    adv_train_num = int(sys.argv[3])                        # 20
+    # ratio_value = float(sys.argv[4])                        # 0.5
+    # adv_train_attack = sys.argv[5]                          # "BIM"
+    # attack_par_lst = sys.argv[6][1:-1].split(', ')          # "[norm_type, np.inf, epsilon, 0.3, epsilon_step, 0.01, max_iteration, 40]"
     ratio_value = 0.5
     adv_train_attack = "BIM"
     attack_par_lst = ["norm_type", "np.inf", "epsilon", "0.3", "epsilon_step", "0.01", "max_iteration", "40"]
 
-    data_type = model_type[:model_type.find("_")]  # "mnist"
     attack_par = {}
     # FGM       : [epsilon, norm_type]
     # BIM       : [norm_type, epsilon, epsilon_step, max_iteration]
@@ -58,42 +58,40 @@ if __name__ == "__main__":
 
     # ==========================1.准备用于做对抗训练的随机模型 ======================= #
     # valid model name: "mnist", "cifar10"
-    if os.path.exists("./model") and os.listdir("./model"):  # 判断文件夹存在且不为空
-        print("Please abandon the 'model' file and start training.")
-        exit()
-    else:
-        tra_begin_main = time.time()
-        if model_type == "mnist_MLP":
-            from traditional_training.Train_mnist_MLP import train
-            (x_train, y_train), (x_test, y_test) = mnist.load_data()
-            x_train = x_train.reshape(60000, 784)
-            x_test = x_test.reshape(10000, 784)
-        elif model_type == "mnist_CNN":
-            from traditional_training.Train_mnist_CNN import train
-            (x_train, y_train), (x_test, y_test) = mnist.load_data()
-            x_train = x_train.reshape(60000, 784)
-            x_test = x_test.reshape(10000, 784)
-        elif model_type == "fmnist_MLP":
-            from traditional_training.Train_fmnist_MLP import train
-            (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
-            x_train = x_train.reshape(60000, 784)
-            x_test = x_test.reshape(10000, 784)
-        elif model_type == "fmnist_CNN":
-            from traditional_training.Train_fmnist_CNN import train
-            (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
-            x_train = x_train.reshape(60000, 784)
-            x_test = x_test.reshape(10000, 784)
-        elif model_type == "cifar10_CNN":
-            from traditional_training.Train_cifar10_CNN import train
-            (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-        x_train = x_train.astype('float32')
-        x_test = x_test.astype('float32')
-        x_train /= 255
-        x_test /= 255
-        y_train = keras.utils.to_categorical(y_train, 10)
-        y_test = keras.utils.to_categorical(y_test, 10)
+    if os.path.exists("./model"):
+        os.system("rm -r model")
+    tra_begin_main = time.time()
+    if data_type == "mnist" and model_type == "MLP":
+        from traditional_training.Train_mnist_MLP import train
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        x_train = x_train.reshape(60000, 784)
+        x_test = x_test.reshape(10000, 784)
+    elif data_type == "mnist" and model_type == "CNN":
+        from traditional_training.Train_mnist_CNN import train
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        x_train = x_train.reshape(60000, 784)
+        x_test = x_test.reshape(10000, 784)
+    elif data_type == "fmnist" and model_type == "MLP":
+        from traditional_training.Train_fmnist_MLP import train
+        (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+        x_train = x_train.reshape(60000, 784)
+        x_test = x_test.reshape(10000, 784)
+    elif data_type == "fmnist" and model_type == "CNN":
+        from traditional_training.Train_fmnist_CNN import train
+        (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+        x_train = x_train.reshape(60000, 784)
+        x_test = x_test.reshape(10000, 784)
+    elif data_type == "cifar10" and model_type == "CNN":
+        from traditional_training.Train_cifar10_CNN import train
+        (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+    x_train /= 255
+    x_test /= 255
+    y_train = keras.utils.to_categorical(y_train, 10)
+    y_test = keras.utils.to_categorical(y_test, 10)
     train(x_train, y_train, x_test, y_test, 0)
-    os.system("mv ./model/" + model_type + " ./model/adv_model")
+    os.system("mv ./model/" + data_type + "_" + model_type + " ./model/adv_model")
 
 
     
@@ -132,5 +130,5 @@ if __name__ == "__main__":
     # print('Test accuracy:', scores[1])
     # print("adv_model generation's timecost: " + str(end_time - begin_time))
     print("adversarial_training completed!")
-    os.system("echo 'adv: '" + str(end_time - begin_time) + " >> ../evaluation/time.txt")
+    os.system("echo " + data_type + "_" + model_type + ": " + str(end_time - begin_time) + " > ../evaluation/adv_time.txt")
     os.system("rm -r ./model/origin_model")

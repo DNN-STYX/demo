@@ -2,4 +2,4 @@
 
 
 bash model_generation.sh 
-bash model_evaluation.sh
+bash model_evaluation_FGM.sh
